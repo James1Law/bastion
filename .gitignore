@@ -1,0 +1,40 @@
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# --- Node ---
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Build output ---
+dist/
+build/
+out/
+.next/
+.vite/
+*.tsbuildinfo
+
+# --- Test output ---
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Local Claude artefacts that shouldn't live in source ---
+.claude/settings.local.json
