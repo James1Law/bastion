@@ -9,11 +9,18 @@
 @theme {
   --color-bastion-bg: #06090e;
   --color-bastion-surface: #0b1018;
+  --color-bastion-surface-2: #11182380;
   --color-bastion-border: #1b2230;
+  --color-bastion-border-strong: #2a3346;
   --color-bastion-fg: #f1f5f9;
   --color-bastion-muted: #94a3b8;
+  --color-bastion-subtle: #64748b;
   --color-bastion-accent: #26f27b;
   --color-bastion-accent-soft: #26f27b29;
+  --color-bastion-warn: #f5b056;
+  --color-bastion-warn-soft: #f5b05629;
+  --color-bastion-danger: #f5566c;
+  --color-bastion-danger-soft: #f5566c29;
 
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
