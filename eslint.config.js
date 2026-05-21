@@ -71,9 +71,9 @@ export default tseslint.config(
     },
   },
 
-  // 5) Root JS configs (this file, etc.) — untyped linting only
+  // 5) Node-context JS (root configs, per-app configs, build scripts) — untyped linting
   {
-    files: ['*.{js,cjs,mjs}', '**/*.config.{js,cjs,mjs}'],
+    files: ['*.{js,cjs,mjs}', '**/*.config.{js,cjs,mjs}', '**/scripts/**/*.{js,cjs,mjs}'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',

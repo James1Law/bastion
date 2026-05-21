@@ -33,7 +33,7 @@ export function Hero(): React.JSX.Element {
             variants={itemVariants}
             src={logoUrl}
             alt="Bastion"
-            className="mb-8 h-9 w-auto sm:h-10"
+            className="mb-8 h-20 w-auto sm:h-24 lg:h-28"
           />
           <motion.div variants={itemVariants}>
             <StatusPill />
