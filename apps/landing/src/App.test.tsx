@@ -14,5 +14,8 @@ describe('App', () => {
     );
     expect(screen.getByRole('link', { name: /see how it works/i })).toHaveAttribute('href', '#how');
     expect(screen.getByRole('heading', { name: /security overview/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /it does not make them safer/i }),
+    ).toBeInTheDocument();
   });
 });
