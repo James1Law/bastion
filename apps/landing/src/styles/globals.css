@@ -33,6 +33,10 @@
 html {
   color-scheme: dark;
   background-color: var(--color-bastion-bg);
+  /* Smooth anchor navigation. Browsers honour prefers-reduced-motion automatically. */
+  scroll-behavior: smooth;
+  /* Offset so sticky-nav doesn't cover the top of an anchored section. */
+  scroll-padding-top: 4.5rem;
 }
 
 body {

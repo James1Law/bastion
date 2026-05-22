@@ -6,9 +6,15 @@ describe('App', () => {
   it('renders the hero with brand, headline, CTAs, and security mockup', () => {
     render(<App />);
 
-    expect(screen.getByRole('img', { name: /bastion/i })).toBeInTheDocument();
+    // The Bastion logo appears in both the nav and the hero.
+    expect(screen.getAllByRole('img', { name: /bastion/i }).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/security-first IDE/i);
     expect(screen.getByRole('link', { name: /join the waitlist/i })).toHaveAttribute(
+      'href',
+      '#waitlist',
+    );
+    // Nav has its own shorter "Join waitlist" CTA pointing to the same anchor.
+    expect(screen.getByRole('link', { name: /^join waitlist$/i })).toHaveAttribute(
       'href',
       '#waitlist',
     );
