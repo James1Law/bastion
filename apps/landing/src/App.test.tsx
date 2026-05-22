@@ -21,5 +21,8 @@ describe('App', () => {
       screen.getByRole('heading', { level: 2, name: /security into the default path/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /dependency firewall/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /each guardrail, on by default/i }),
+    ).toBeInTheDocument();
   });
 });

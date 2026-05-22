@@ -1,6 +1,7 @@
 import { Hero } from '@/sections/Hero';
 import { Problem } from '@/sections/Problem';
 import { Solution } from '@/sections/Solution';
+import { Features } from '@/sections/Features';
 
 export default function App(): React.JSX.Element {
   return (
@@ -8,6 +9,7 @@ export default function App(): React.JSX.Element {
       <Hero />
       <Problem />
       <Solution />
+      <Features />
     </main>
   );
 }
