@@ -3,6 +3,7 @@ import { Problem } from '@/sections/Problem';
 import { Solution } from '@/sections/Solution';
 import { Features } from '@/sections/Features';
 import { HowItWorks } from '@/sections/HowItWorks';
+import { Audience } from '@/sections/Audience';
 
 export default function App(): React.JSX.Element {
   return (
@@ -12,6 +13,7 @@ export default function App(): React.JSX.Element {
       <Solution />
       <Features />
       <HowItWorks />
+      <Audience />
     </main>
   );
 }
