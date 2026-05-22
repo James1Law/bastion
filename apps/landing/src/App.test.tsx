@@ -24,5 +24,8 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: /each guardrail, on by default/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /from keystroke to github/i }),
+    ).toBeInTheDocument();
   });
 });
