@@ -35,5 +35,10 @@ describe('App', () => {
       screen.getByRole('heading', { level: 2, name: /what changes when you switch from vs code/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /bastion/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /build fast without leaving the gates open/i }),
+    ).toBeInTheDocument();
+    // The waitlist form has its own submit button; the hero CTA is an anchor link.
+    expect(screen.getByRole('button', { name: /join the waitlist/i })).toBeInTheDocument();
   });
 });
