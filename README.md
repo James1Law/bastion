@@ -80,23 +80,91 @@ Vercel installs from the workspace root automatically when it sees `pnpm-workspa
 
 ### Waitlist backend (Resend)
 
-The waitlist form POSTs to a Vercel edge function at `apps/landing/api/waitlist.ts` that adds the contact to a Resend audience and sends a confirmation email. To wire it up:
+The waitlist form POSTs to a Vercel edge function at `apps/landing/api/waitlist.ts` that adds the contact to a Resend audience and sends a confirmation email.
 
-1. **Create a Resend account** at [resend.com](https://resend.com) and verify a sending domain (or use the `onboarding@resend.dev` sandbox while you're testing).
-2. **Create an audience** in the Resend dashboard. Copy the ID.
-3. **Create a server-side API key** at [resend.com/api-keys](https://resend.com/api-keys).
-4. **Set these env vars in Vercel** (Project Settings → Environment Variables → Production):
+#### What you'll need from Resend
 
-   | Variable                | Value                                                 |
-   | ----------------------- | ----------------------------------------------------- |
-   | `RESEND_API_KEY`        | `re_…` (the API key from step 3)                      |
-   | `RESEND_AUDIENCE_ID`    | The audience UUID from step 2                         |
-   | `WAITLIST_FROM_EMAIL`   | A sender on your verified domain                      |
-   | `WAITLIST_NOTIFY_EMAIL` | _(optional)_ email to receive rich submission details |
+Four pieces of info, all from your Resend dashboard:
 
-5. Redeploy. The form will now POST live and start adding contacts.
+| Resend dashboard page    | What you grab there                      | Maps to env var         |
+| ------------------------ | ---------------------------------------- | ----------------------- |
+| Audiences → your list    | The audience ID (UUID in the URL)        | `RESEND_AUDIENCE_ID`    |
+| API Keys → new key       | The `re_…` key (shown once at creation)  | `RESEND_API_KEY`        |
+| Domains → verified entry | A sender address on your verified domain | `WAITLIST_FROM_EMAIL`   |
+| _(your own inbox)_       | Where signup notifications should land   | `WAITLIST_NOTIFY_EMAIL` |
 
-If any of the required vars are missing, the function returns `503` and the form shows a friendly "temporarily unavailable" message — no submissions are lost, but none are stored either. See [`apps/landing/.env.example`](apps/landing/.env.example) for the local-dev shape.
+#### Step 1 — Find your audience ID
+
+Resend auto-creates a default audience called **"General"** the moment you sign up, so you don't need to create one. Go to **[resend.com/audiences](https://resend.com/audiences)** and click into it. The screen that asks you to "add contacts" _is_ the audience — it's empty because no one's signed up yet.
+
+To get the ID:
+
+- Look at your browser's URL bar. It'll be `https://resend.com/audiences/<uuid>`. That UUID is your `RESEND_AUDIENCE_ID`.
+- You can rename "General" to something like "Bastion waitlist" from the audience header — doesn't change the ID.
+
+#### Step 2 — Pick a sender (the fast way vs the proper way)
+
+The `WAITLIST_FROM_EMAIL` value has to be on a domain Resend has verified.
+
+**Fast (sandbox, no domain needed)**
+
+Use `onboarding@resend.dev` as the value. Works immediately, lets you ship today. Limitations: emails come from `@resend.dev` (not your brand), and Resend will surface a "sandbox" badge in their dashboard. Fine for validating the flow.
+
+**Proper (your own domain)**
+
+If you have a domain you control (e.g. `bastion.dev`):
+
+1. **[resend.com/domains](https://resend.com/domains)** → Add Domain → enter your domain.
+2. Resend shows you ~3–4 DNS records to add (one SPF `TXT`, several DKIM `CNAME`, optionally DMARC). Add them at your DNS provider (Cloudflare, Namecheap, whatever).
+3. Hit "Verify". Usually verifies in a few minutes once DNS propagates.
+4. Now you can use any address on that domain — e.g. `hello@bastion.dev` — as `WAITLIST_FROM_EMAIL`.
+
+You can start with the sandbox, ship to Vercel, validate the flow, _then_ upgrade to a real domain. Nothing in the code changes — just swap the env var value and redeploy.
+
+#### Step 3 — Create an API key
+
+**[resend.com/api-keys](https://resend.com/api-keys)** → "Create API Key".
+
+- **Name** it something obvious (e.g. `bastion-vercel-prod`).
+- **Permission**: "Full access" is the simplest choice for now (needs to both send emails and write to audiences). You can scope it down later.
+- Resend shows the `re_…` key **once**. Copy it immediately into your password manager or directly into the Vercel env var below — if you lose it, you'll have to make a new one.
+
+#### Step 4 — Set the env vars in Vercel
+
+In the Vercel dashboard:
+
+1. Open your **bastion** project.
+2. **Settings → Environment Variables**.
+3. Add each variable. For each, tick **Production** (and **Preview** if you want it to work on preview deploys too):
+
+   | Variable                | Example value                                                 |
+   | ----------------------- | ------------------------------------------------------------- |
+   | `RESEND_API_KEY`        | `re_xxxxxxxxxxxxxxxxxxxx`                                     |
+   | `RESEND_AUDIENCE_ID`    | `abc12345-6789-…` (UUID from step 1)                          |
+   | `WAITLIST_FROM_EMAIL`   | `onboarding@resend.dev` _(sandbox)_ or `hello@yourdomain.com` |
+   | `WAITLIST_NOTIFY_EMAIL` | _(optional)_ your own email — gets the full submission        |
+
+4. **Redeploy** — env vars only apply to new builds. Go to **Deployments**, click the three-dot menu on the latest one, and pick **Redeploy**.
+
+#### Step 5 — Test it end-to-end
+
+1. Open your deployed site.
+2. Submit the form with a real email of yours.
+3. Within a few seconds you should see:
+   - The form switch to the green "You're on the list" success state.
+   - A confirmation email arrive in your inbox.
+   - The contact appear in the Resend Audiences view.
+   - If you set `WAITLIST_NOTIFY_EMAIL`, a separate "New Bastion waitlist signup" email there too.
+
+#### Common pitfalls
+
+- **"Temporarily unavailable" message on submit** → one of the three required env vars (`RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `WAITLIST_FROM_EMAIL`) is missing or empty in Vercel. The function returns 503 cleanly in that case so no data is lost.
+- **Submission succeeds but no email arrives** → the contact was added to the audience but Resend rejected the send. Common cause: `WAITLIST_FROM_EMAIL` is on a domain that isn't verified yet. Check **Resend → Logs** for the bounce.
+- **"Domain not verified" in Resend logs** → finish DNS verification, or temporarily set `WAITLIST_FROM_EMAIL` to `onboarding@resend.dev` while you wait.
+- **Env vars added but it still doesn't work** → you forgot to redeploy. Vercel only injects env vars at build/cold-start.
+- **Submitting twice with the same email** → handled. The second submission is treated as success (Resend rejects duplicates, our code maps that to OK).
+
+See [`apps/landing/.env.example`](apps/landing/.env.example) for the env var shape if you want to test the endpoint locally.
 
 ## Contributing / working in this repo
 
