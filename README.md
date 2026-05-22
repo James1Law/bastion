@@ -78,6 +78,26 @@ Vercel auto-detects pnpm workspaces. For the landing app:
 
 Vercel installs from the workspace root automatically when it sees `pnpm-workspace.yaml`, so the lockfile is respected and only the landing app's dependencies are needed at build time.
 
+### Waitlist backend (Resend)
+
+The waitlist form POSTs to a Vercel edge function at `apps/landing/api/waitlist.ts` that adds the contact to a Resend audience and sends a confirmation email. To wire it up:
+
+1. **Create a Resend account** at [resend.com](https://resend.com) and verify a sending domain (or use the `onboarding@resend.dev` sandbox while you're testing).
+2. **Create an audience** in the Resend dashboard. Copy the ID.
+3. **Create a server-side API key** at [resend.com/api-keys](https://resend.com/api-keys).
+4. **Set these env vars in Vercel** (Project Settings → Environment Variables → Production):
+
+   | Variable                | Value                                                 |
+   | ----------------------- | ----------------------------------------------------- |
+   | `RESEND_API_KEY`        | `re_…` (the API key from step 3)                      |
+   | `RESEND_AUDIENCE_ID`    | The audience UUID from step 2                         |
+   | `WAITLIST_FROM_EMAIL`   | A sender on your verified domain                      |
+   | `WAITLIST_NOTIFY_EMAIL` | _(optional)_ email to receive rich submission details |
+
+5. Redeploy. The form will now POST live and start adding contacts.
+
+If any of the required vars are missing, the function returns `503` and the form shows a friendly "temporarily unavailable" message — no submissions are lost, but none are stored either. See [`apps/landing/.env.example`](apps/landing/.env.example) for the local-dev shape.
+
 ## Contributing / working in this repo
 
 Read [`CLAUDE.md`](CLAUDE.md) first — it's the operating manual for both humans and AI agents. It covers the stack, code conventions, testing policy, brand rules, and the dos/don'ts that keep the codebase coherent.

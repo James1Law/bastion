@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { cn } from '@/lib/cn';
 
@@ -30,6 +30,8 @@ function validate(values: FormValues): Errors {
   return errors;
 }
 
+type Status = 'idle' | 'submitting' | 'submitted' | 'error';
+
 export function WaitlistForm(): React.JSX.Element {
   const nameId = useId();
   const emailId = useId();
@@ -41,7 +43,9 @@ export function WaitlistForm(): React.JSX.Element {
 
   const [values, setValues] = useState<FormValues>(emptyForm);
   const [errors, setErrors] = useState<Errors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<Status>('idle');
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   function update<K extends keyof FormValues>(key: K, value: FormValues[K]): void {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -54,7 +58,7 @@ export function WaitlistForm(): React.JSX.Element {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     const next = validate(values);
     setErrors(next);
@@ -68,23 +72,55 @@ export function WaitlistForm(): React.JSX.Element {
       return;
     }
 
-    // v1: visual-only — no backend yet.
-    console.log('[waitlist] submission', values);
-    setSubmitted(true);
+    setStatus('submitting');
+    setFormError(null);
+
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        setSubmittedEmail(values.email);
+        setStatus('submitted');
+        return;
+      }
+
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      setStatus('error');
+      setFormError(data?.error ?? 'Something went wrong. Please try again.');
+    } catch {
+      setStatus('error');
+      setFormError('Network error. Please check your connection and try again.');
+    }
   }
 
-  if (submitted) {
-    return <SuccessState email={values.email} />;
+  if (status === 'submitted') {
+    return <SuccessState email={submittedEmail} />;
   }
+
+  const isSubmitting = status === 'submitting';
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit}
+      onSubmit={(event) => {
+        void handleSubmit(event);
+      }}
       className="rounded-2xl border border-bastion-border bg-bastion-surface p-6 sm:p-8"
       aria-labelledby="waitlist-heading"
     >
-      <div className="flex flex-col gap-5">
+      {formError ? (
+        <div
+          role="alert"
+          className="mb-5 rounded-md border border-bastion-danger/40 bg-bastion-danger-soft px-3 py-2 text-sm text-bastion-danger"
+        >
+          {formError}
+        </div>
+      ) : null}
+      <fieldset disabled={isSubmitting} className="flex flex-col gap-5">
         <Field
           id={nameId}
           inputRef={nameRef}
@@ -126,14 +162,21 @@ export function WaitlistForm(): React.JSX.Element {
           placeholder="A side project, a startup, an internal tool…"
           multiline
         />
-      </div>
+      </fieldset>
 
       <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-bastion-subtle">
           No tracking pixels. No selling your address. Unsubscribe anytime.
         </p>
-        <Button type="submit" variant="primary">
-          Join the waitlist
+        <Button type="submit" variant="primary" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Joining…
+            </>
+          ) : (
+            'Join the waitlist'
+          )}
         </Button>
       </div>
     </form>

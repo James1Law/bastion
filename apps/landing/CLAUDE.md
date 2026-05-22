@@ -67,16 +67,16 @@ Need a new token? Add it to `@theme` in `globals.css`. Don't hard-code colours i
 - Always respect `prefers-reduced-motion`. Use Motion's `useReducedMotion()` hook or guard CSS transitions.
 - Don't animate layout-shifting properties (use `transform`/`opacity`, not `top`/`width`).
 
-## Waitlist form (v1)
+## Waitlist form
 
-Visual-only. The form should:
+POSTs to `/api/waitlist` (a Vercel edge function at `apps/landing/api/waitlist.ts`) which adds the contact to a Resend audience, sends a confirmation email to the user, and optionally pings an admin email with the full submission.
 
-- Accept name + email (required), role/company + "what are you building?" (optional).
-- Validate client-side: email format, name length ≥ 1.
-- On submit: prevent default, show a success state, log payload to console. **No network call.**
-- Be keyboard-accessible: tab order, focus rings, labels, error messages associated via `aria-describedby`.
+- **Required env vars** (set in Vercel): `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `WAITLIST_FROM_EMAIL`. Optional: `WAITLIST_NOTIFY_EMAIL`. See `.env.example` and the README for setup steps.
+- **Form behaviour**: name + email required, role/company + "what are you building?" optional. Client-side validation (email regex, non-empty name) plus server-side re-validation. `idle → submitting → submitted | error` state machine; submit button disables with a spinner during the request; server errors surface via a top-of-form alert.
+- **Accessibility**: every field has a `<label>`, error states use `aria-invalid` + `aria-describedby`, the form error is `role="alert"`, the success block is `role="status"` with `aria-live="polite"`. Tab order is name → email → role → building → submit.
+- **Server behaviour**: duplicate-contact errors from Resend are treated as success. Email failures (confirmation or admin) are logged but don't fail the submission — the contact's already in the audience.
 
-When the user decides to wire up a real backend, swap the submit handler — the rest of the form should not need to change.
+Tests live next to the component (`WaitlistForm.test.tsx`) and cover validation, fetch success, server-error response, and network failure. Mock `fetch` via `vi.stubGlobal` per test.
 
 ## Accessibility floor
 
