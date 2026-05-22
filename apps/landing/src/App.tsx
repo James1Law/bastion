@@ -4,6 +4,7 @@ import { Solution } from '@/sections/Solution';
 import { Features } from '@/sections/Features';
 import { HowItWorks } from '@/sections/HowItWorks';
 import { Audience } from '@/sections/Audience';
+import { Comparison } from '@/sections/Comparison';
 
 export default function App(): React.JSX.Element {
   return (
@@ -14,6 +15,7 @@ export default function App(): React.JSX.Element {
       <Features />
       <HowItWorks />
       <Audience />
+      <Comparison />
     </main>
   );
 }

@@ -31,5 +31,9 @@ describe('App', () => {
       screen.getByRole('heading', { level: 2, name: /built for the way you actually ship/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /vibe coders/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /what changes when you switch from vs code/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /bastion/i })).toBeInTheDocument();
   });
 });
