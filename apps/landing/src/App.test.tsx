@@ -17,5 +17,9 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: /it does not make them safer/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /security into the default path/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /dependency firewall/i })).toBeInTheDocument();
   });
 });
